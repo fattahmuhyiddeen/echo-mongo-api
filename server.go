@@ -1,10 +1,11 @@
 package main
 
 import (
+	"./handler"
+
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 	"github.com/labstack/gommon/log"
-	"github.com/petronetto/echo-mongo-api/handler"
 	"gopkg.in/mgo.v2"
 )
 
@@ -24,7 +25,7 @@ func main() {
 	}))
 
 	// Database connection
-	db, err := mgo.Dial("mongo")
+	db, err := mgo.Dial("localhost")
 	if err != nil {
 		e.Logger.Fatal(err)
 	}

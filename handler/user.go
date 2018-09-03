@@ -4,9 +4,9 @@ import (
 	"net/http"
 	"time"
 
+	"../model"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
-	"github.com/petronetto/echo-mongo-api/model"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )

@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"strconv"
 
+	"../model"
 	"github.com/labstack/echo"
-	"github.com/petronetto/echo-mongo-api/model"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )

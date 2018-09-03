@@ -1,7 +1,7 @@
 # Golang API + Mongo database
 
 ## Running
-Run `docker-compose up -d`  
+Run `go run server.go`  
 
 ## Signup
 User signup  

@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"log"
 	"net/http"
 	"time"
 
@@ -121,6 +122,24 @@ func (h *Handler) GetProfile(c echo.Context) (err error) {
 	defer db.Close()
 
 	return c.JSON(http.StatusOK, user)
+}
+
+// UpdateProfile to update profile of the user
+func (h *Handler) UpdateProfile(c echo.Context) (err error) {
+	userID := userIDFromToken(c)
+	name := c.QueryParam("name")
+	log.Println(name)
+
+	db := h.DB.Clone()
+	defer db.Close()
+	if err = db.DB(config.DbName).C("users").
+		UpdateId(bson.ObjectIdHex(userID), bson.M{"$set": bson.M{"name": name}}); err != nil {
+		if err == mgo.ErrNotFound {
+			return echo.ErrNotFound
+		}
+	}
+
+	return
 }
 
 func userIDFromToken(c echo.Context) string {

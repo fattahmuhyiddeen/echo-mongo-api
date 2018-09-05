@@ -49,6 +49,7 @@ func main() {
 	// e.POST("/posts", h.CreatePost)
 	// e.GET("/feed", h.FetchPost)
 	e.GET("/profile", h.GetProfile)
+	e.POST("/profile", h.UpdateProfile)
 
 	// Start server
 	e.Logger.Fatal(e.Start(":1323"))

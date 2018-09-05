@@ -1,6 +1,7 @@
 package main
 
 import (
+	config "./config"
 	"./handler"
 
 	"github.com/labstack/echo"
@@ -31,7 +32,7 @@ func main() {
 	}
 
 	// Create indices
-	if err = db.Copy().DB("twitter").C("users").EnsureIndex(mgo.Index{
+	if err = db.Copy().DB(config.DbName).C("users").EnsureIndex(mgo.Index{
 		Key:    []string{"email"},
 		Unique: true,
 	}); err != nil {

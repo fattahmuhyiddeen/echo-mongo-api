@@ -21,23 +21,28 @@ func (h *Handler) Signup(c echo.Context) (err error) {
 	}
 
 	// Validate
-	if u.Email == "" || u.Password == "" {
-		return &echo.HTTPError{Code: http.StatusBadRequest, Message: "invalid email or password"}
+	if u.Email == "" {
+		return &echo.HTTPError{Code: http.StatusBadRequest, Message: "invalid email"}
+	}
+	if u.Password == "" {
+		return &echo.HTTPError{Code: http.StatusBadRequest, Message: "invalid password"}
 	}
 
 	// Save user
 	db := h.DB.Clone()
 	defer db.Close()
-	if err = db.DB(config.DbName).C("users").
-		Find(bson.M{"email": u.Email}).One(u); err != nil {
-		if err == mgo.ErrNotFound {
-			return &echo.HTTPError{Code: http.StatusUnauthorized, Message: "invalid email or password"}
-		}
-		return
+
+	numRows, err := db.DB(config.DbName).C("users").Find(bson.M{"email": u.Email}).Count()
+
+	if err != nil {
+		return &echo.HTTPError{Code: http.StatusBadRequest, Message: "Sorry, please try later"}
+	}
+	if numRows > 0 {
+		return &echo.HTTPError{Code: http.StatusBadRequest, Message: "Email already taken, please choose another email"}
 	}
 
 	if err = db.DB(config.DbName).C("users").Insert(u); err != nil {
-		return
+		return &echo.HTTPError{Code: http.StatusBadRequest, Message: "Sorry, please try later"}
 	}
 
 	return c.JSON(http.StatusCreated, u)

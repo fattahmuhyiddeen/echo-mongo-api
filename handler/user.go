@@ -5,6 +5,7 @@ import (
 	"time"
 
 	config "../config"
+	logic "../logic"
 
 	"../model"
 	"github.com/dgrijalva/jwt-go"
@@ -21,7 +22,7 @@ func (h *Handler) Signup(c echo.Context) (err error) {
 	}
 
 	// Validate
-	if u.Email == "" {
+	if !logic.IsValidEmail(u.Email) {
 		return &echo.HTTPError{Code: http.StatusBadRequest, Message: "invalid email"}
 	}
 	if u.Password == "" {
@@ -103,6 +104,23 @@ func (h *Handler) Follow(c echo.Context) (err error) {
 	}
 
 	return
+}
+
+// GetProfile to profile of the user
+func (h *Handler) GetProfile(c echo.Context) (err error) {
+	userID := userIDFromToken(c)
+
+	// Retrieve posts from database
+	user := model.User{}
+	db := h.DB.Clone()
+
+	if err = db.DB(config.DbName).C("users").FindId(bson.ObjectIdHex(userID)).One(&user); err != nil {
+		return
+	}
+
+	defer db.Close()
+
+	return c.JSON(http.StatusOK, user)
 }
 
 func userIDFromToken(c echo.Context) string {

@@ -45,9 +45,10 @@ func main() {
 	// Routes
 	e.POST("/signup", h.Signup)
 	e.POST("/login", h.Login)
-	e.POST("/follow/:id", h.Follow)
-	e.POST("/posts", h.CreatePost)
-	e.GET("/feed", h.FetchPost)
+	// e.POST("/follow/:id", h.Follow)
+	// e.POST("/posts", h.CreatePost)
+	// e.GET("/feed", h.FetchPost)
+	e.GET("/profile", h.GetProfile)
 
 	// Start server
 	e.Logger.Fatal(e.Start(":1323"))

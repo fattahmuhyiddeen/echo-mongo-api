@@ -153,6 +153,34 @@ func (h *Handler) Verify(c echo.Context) (err error) {
 // 	return
 // }
 
+//ResetPassword is
+func (h *Handler) ResetPassword(c echo.Context) (err error) {
+	u := new(model.User)
+	if err = c.Bind(u); err != nil {
+		return
+	}
+	email := c.FormValue("email")
+	newPassword := c.FormValue("password")
+	if !logic.IsValidPassword(newPassword) {
+		return &echo.HTTPError{Code: http.StatusUnauthorized, Message: "invalid new password"}
+	}
+	forgotPasswordToken := c.FormValue("forgotPasswordToken")
+	db := h.DB.Clone()
+	defer db.Close()
+
+	if err = db.DB(config.DbName).C("users").Find(bson.M{"email": email, "forgotPasswordToken": forgotPasswordToken}).One(u); err != nil {
+		return &echo.HTTPError{Code: http.StatusUnauthorized, Message: "invalid email or token"}
+	}
+
+	if err = db.DB(config.DbName).C("users").
+		UpdateId(u.ID, bson.M{"$set": bson.M{"forgotPasswordToken": "", "password": logic.HashPassword(newPassword)}}); err != nil {
+		if err == mgo.ErrNotFound {
+			return echo.ErrNotFound
+		}
+	}
+	return c.JSON(http.StatusOK, "password updated")
+}
+
 //RequestChangePassword is
 func (h *Handler) RequestChangePassword(c echo.Context) (err error) {
 	u := new(model.User)
@@ -177,7 +205,6 @@ func (h *Handler) RequestChangePassword(c echo.Context) (err error) {
 	}
 
 	return c.JSON(http.StatusOK, "a secret link has been sent to your email")
-
 }
 
 // GetProfile to profile of the user

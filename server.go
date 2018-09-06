@@ -18,7 +18,7 @@ func main() {
 		SigningKey: []byte(handler.Key),
 		Skipper: func(c echo.Context) bool {
 			// Skip authentication for and signup login requests
-			if c.Path() == "/login" || c.Path() == "/signup" || c.Path() == "/verify" || c.Path() == "/test" {
+			if c.Path() == "/login" || c.Path() == "/signup" || c.Path() == "/verify" || c.Path() == "/forget" || c.Path() == "/test" {
 				return true
 			}
 			return false
@@ -52,7 +52,8 @@ func main() {
 	e.GET("/profile", h.GetProfile)
 	e.POST("/profile", h.UpdateProfile)
 	e.POST("/password", h.UpdatePassword)
-	e.GET("/password", h.RequestChangePassword)
+	e.GET("/forget", h.RequestChangePassword)
+	e.POST("/forget", h.ResetPassword)
 	e.GET("/test", h.TestFunc)
 
 	// Start server

@@ -29,7 +29,6 @@ func (h *Handler) Signup(c echo.Context) (err error) {
 		return &echo.HTTPError{Code: http.StatusBadRequest, Message: "invalid password"}
 	}
 
-	// Save user
 	db := h.DB.Clone()
 	defer db.Close()
 
@@ -45,7 +44,14 @@ func (h *Handler) Signup(c echo.Context) (err error) {
 	if err = db.DB(config.DbName).C("users").Insert(u); err != nil {
 		return &echo.HTTPError{Code: http.StatusBadRequest, Message: "Sorry, please try later"}
 	}
-	u.Password = logic.HashPassword(u.Password)
+
+	if err = db.DB(config.DbName).C("users").
+		UpdateId(u.ID, bson.M{"$set": bson.M{"password": logic.HashPassword(u.Password)}}); err != nil {
+		if err == mgo.ErrNotFound {
+			return echo.ErrNotFound
+		}
+	}
+	u.Password = ""
 
 	return c.JSON(http.StatusCreated, u)
 }
@@ -61,11 +67,16 @@ func (h *Handler) Login(c echo.Context) (err error) {
 	db := h.DB.Clone()
 	defer db.Close()
 	if err = db.DB(config.DbName).C("users").
-		Find(bson.M{"email": u.Email, "password": u.Password}).One(u); err != nil {
+		// Find(bson.M{"email": u.Email, "password": u.Password}).One(u); err != nil {
+		Find(bson.M{"email": u.Email}).One(u); err != nil {
 		if err == mgo.ErrNotFound {
-			return &echo.HTTPError{Code: http.StatusUnauthorized, Message: "invalid email or password"}
+			return &echo.HTTPError{Code: http.StatusUnauthorized, Message: "invalid email"}
 		}
 		return
+	}
+
+	if !logic.ComparePasswords(u.Password, c.FormValue("password")) {
+		return &echo.HTTPError{Code: http.StatusUnauthorized, Message: "invalid password"}
 	}
 
 	//-----

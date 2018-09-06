@@ -45,8 +45,13 @@ func (h *Handler) Signup(c echo.Context) (err error) {
 		return &echo.HTTPError{Code: http.StatusBadRequest, Message: "Sorry, please try later"}
 	}
 
+	verifyKey, err := logic.GenerateRandomStringURLSafe(32)
+	if err != nil {
+		return &echo.HTTPError{Code: http.StatusBadRequest, Message: "Sorry, verify key error"}
+	}
+
 	if err = db.DB(config.DbName).C("users").
-		UpdateId(u.ID, bson.M{"$set": bson.M{"password": logic.HashPassword(u.Password)}}); err != nil {
+		UpdateId(u.ID, bson.M{"$set": bson.M{"verifyKey": verifyKey, "status": "Unverified", "password": logic.HashPassword(u.Password)}}); err != nil {
 		if err == mgo.ErrNotFound {
 			return echo.ErrNotFound
 		}
@@ -151,7 +156,7 @@ func (h *Handler) UpdateProfile(c echo.Context) (err error) {
 		}
 	}
 
-	return
+	return c.JSON(http.StatusOK, "ok")
 }
 
 // UpdatePassword to update profile of the user

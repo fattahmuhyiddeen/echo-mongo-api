@@ -106,6 +106,38 @@ func (h *Handler) Login(c echo.Context) (err error) {
 	return c.JSON(http.StatusOK, u)
 }
 
+//Verify to verify user (clicked by user in email)
+func (h *Handler) Verify(c echo.Context) (err error) {
+	// Bind
+	u := new(model.User)
+	if err = c.Bind(u); err != nil {
+		return
+	}
+
+	email := c.QueryParam("e")
+	verifyToken := c.QueryParam("t")
+
+	// Find user
+	db := h.DB.Clone()
+	defer db.Close()
+	if err = db.DB(config.DbName).C("users").
+		Find(bson.M{"email": email, "verifyToken": verifyToken}).One(u); err != nil {
+		if err == mgo.ErrNotFound {
+			return &echo.HTTPError{Code: http.StatusUnauthorized, Message: "invalid link or token already expired"}
+		}
+		return
+	}
+
+	if err = db.DB(config.DbName).C("users").
+		UpdateId(u.ID, bson.M{"$set": bson.M{"verifyToken": ""}}); err != nil {
+		if err == mgo.ErrNotFound {
+			return echo.ErrNotFound
+		}
+	}
+
+	return c.JSON(http.StatusOK, "ok")
+}
+
 // func (h *Handler) Follow(c echo.Context) (err error) {
 // 	userID := userIDFromToken(c)
 // 	id := c.Param("id")

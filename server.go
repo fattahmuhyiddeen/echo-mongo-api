@@ -18,7 +18,7 @@ func main() {
 		SigningKey: []byte(handler.Key),
 		Skipper: func(c echo.Context) bool {
 			// Skip authentication for and signup login requests
-			if c.Path() == "/login" || c.Path() == "/signup" || c.Path() == "/test" {
+			if c.Path() == "/login" || c.Path() == "/signup" || c.Path() == "/verify" || c.Path() == "/test" {
 				return true
 			}
 			return false
@@ -45,6 +45,7 @@ func main() {
 	// Routes
 	e.POST("/signup", h.Signup)
 	e.POST("/login", h.Login)
+	e.POST("/verify", h.Verify)
 	// e.POST("/follow/:id", h.Follow)
 	// e.POST("/posts", h.CreatePost)
 	// e.GET("/feed", h.FetchPost)

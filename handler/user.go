@@ -45,6 +45,7 @@ func (h *Handler) Signup(c echo.Context) (err error) {
 	if err = db.DB(config.DbName).C("users").Insert(u); err != nil {
 		return &echo.HTTPError{Code: http.StatusBadRequest, Message: "Sorry, please try later"}
 	}
+	u.Password = logic.HashPassword(u.Password)
 
 	return c.JSON(http.StatusCreated, u)
 }
@@ -89,22 +90,22 @@ func (h *Handler) Login(c echo.Context) (err error) {
 	return c.JSON(http.StatusOK, u)
 }
 
-func (h *Handler) Follow(c echo.Context) (err error) {
-	userID := userIDFromToken(c)
-	id := c.Param("id")
+// func (h *Handler) Follow(c echo.Context) (err error) {
+// 	userID := userIDFromToken(c)
+// 	id := c.Param("id")
 
-	// Add a follower to user
-	db := h.DB.Clone()
-	defer db.Close()
-	if err = db.DB(config.DbName).C("users").
-		UpdateId(bson.ObjectIdHex(id), bson.M{"$addToSet": bson.M{"followers": userID}}); err != nil {
-		if err == mgo.ErrNotFound {
-			return echo.ErrNotFound
-		}
-	}
+// 	// Add a follower to user
+// 	db := h.DB.Clone()
+// 	defer db.Close()
+// 	if err = db.DB(config.DbName).C("users").
+// 		UpdateId(bson.ObjectIdHex(id), bson.M{"$addToSet": bson.M{"followers": userID}}); err != nil {
+// 		if err == mgo.ErrNotFound {
+// 			return echo.ErrNotFound
+// 		}
+// 	}
 
-	return
-}
+// 	return
+// }
 
 // GetProfile to profile of the user
 func (h *Handler) GetProfile(c echo.Context) (err error) {

@@ -45,7 +45,7 @@ func main() {
 	// Routes
 	e.POST("/signup", h.Signup)
 	e.POST("/login", h.Login)
-	e.POST("/verify", h.Verify)
+	e.GET("/verify", h.Verify)
 	// e.POST("/follow/:id", h.Follow)
 	// e.POST("/posts", h.CreatePost)
 	// e.GET("/feed", h.FetchPost)

@@ -115,21 +115,24 @@ func (h *Handler) Verify(c echo.Context) (err error) {
 	}
 
 	email := c.QueryParam("e")
-	verifyToken := c.QueryParam("t")
+	verifyKey := c.QueryParam("k")
 
 	// Find user
 	db := h.DB.Clone()
 	defer db.Close()
-	if err = db.DB(config.DbName).C("users").
-		Find(bson.M{"email": email, "verifyToken": verifyToken}).One(u); err != nil {
-		if err == mgo.ErrNotFound {
-			return &echo.HTTPError{Code: http.StatusUnauthorized, Message: "invalid link or token already expired"}
-		}
-		return
+
+	// numRows, err := db.DB(config.DbName).C("users").Find(bson.M{"email": email, "verifyKey": verifyKey}).Count()
+	// log.Println(numRows)
+	// if numRows < 1 || err == mgo.ErrNotFound {
+	// 	return &echo.HTTPError{Code: http.StatusUnauthorized, Message: "invalid link or token already expired"}
+	// }
+
+	if err = db.DB(config.DbName).C("users").Find(bson.M{"email": email, "verifyKey": verifyKey}).One(u); err != nil {
+		return &echo.HTTPError{Code: http.StatusUnauthorized, Message: "invalid link or token already expired"}
 	}
 
 	if err = db.DB(config.DbName).C("users").
-		UpdateId(u.ID, bson.M{"$set": bson.M{"verifyToken": ""}}); err != nil {
+		UpdateId(u.ID, bson.M{"$set": bson.M{"verifyKey": "", "status": "Verified"}}); err != nil {
 		if err == mgo.ErrNotFound {
 			return echo.ErrNotFound
 		}

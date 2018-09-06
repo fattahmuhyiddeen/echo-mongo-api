@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"log"
 	"net/http"
 	"time"
 
@@ -127,8 +126,7 @@ func (h *Handler) GetProfile(c echo.Context) (err error) {
 // UpdateProfile to update profile of the user
 func (h *Handler) UpdateProfile(c echo.Context) (err error) {
 	userID := userIDFromToken(c)
-	name := c.QueryParam("name")
-	log.Println(name)
+	name := c.FormValue("name")
 
 	db := h.DB.Clone()
 	defer db.Close()

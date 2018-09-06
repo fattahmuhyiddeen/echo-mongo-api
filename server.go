@@ -18,7 +18,7 @@ func main() {
 		SigningKey: []byte(handler.Key),
 		Skipper: func(c echo.Context) bool {
 			// Skip authentication for and signup login requests
-			if c.Path() == "/login" || c.Path() == "/signup" {
+			if c.Path() == "/login" || c.Path() == "/signup" || c.Path() == "/test" {
 				return true
 			}
 			return false
@@ -50,6 +50,7 @@ func main() {
 	// e.GET("/feed", h.FetchPost)
 	e.GET("/profile", h.GetProfile)
 	e.POST("/profile", h.UpdateProfile)
+	e.GET("/test", h.TestFunc)
 
 	// Start server
 	e.Logger.Fatal(e.Start(":1323"))

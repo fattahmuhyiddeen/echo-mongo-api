@@ -45,13 +45,8 @@ func (h *Handler) Signup(c echo.Context) (err error) {
 		return &echo.HTTPError{Code: http.StatusBadRequest, Message: "Sorry, please try later"}
 	}
 
-	verifyKey, err := logic.GenerateRandomStringURLSafe(32)
-	if err != nil {
-		return &echo.HTTPError{Code: http.StatusBadRequest, Message: "Sorry, verify key error"}
-	}
-
 	if err = db.DB(config.DbName).C("users").
-		UpdateId(u.ID, bson.M{"$set": bson.M{"verifyKey": verifyKey, "status": "Unverified", "password": logic.HashPassword(u.Password)}}); err != nil {
+		UpdateId(u.ID, bson.M{"$set": bson.M{"verifyKey": logic.GenerateRandomStringURLSafe(32), "status": "Unverified", "password": logic.HashPassword(u.Password)}}); err != nil {
 		if err == mgo.ErrNotFound {
 			return echo.ErrNotFound
 		}
@@ -157,6 +152,33 @@ func (h *Handler) Verify(c echo.Context) (err error) {
 
 // 	return
 // }
+
+//RequestChangePassword is
+func (h *Handler) RequestChangePassword(c echo.Context) (err error) {
+	u := new(model.User)
+	if err = c.Bind(u); err != nil {
+		return
+	}
+	email := c.QueryParam("email")
+
+	// Find user
+	db := h.DB.Clone()
+	defer db.Close()
+
+	if err = db.DB(config.DbName).C("users").Find(bson.M{"email": email}).One(u); err != nil {
+		return &echo.HTTPError{Code: http.StatusUnauthorized, Message: "invalid email"}
+	}
+
+	if err = db.DB(config.DbName).C("users").
+		UpdateId(u.ID, bson.M{"$set": bson.M{"forgotPasswordToken": logic.GenerateRandomStringURLSafe(36)}}); err != nil {
+		if err == mgo.ErrNotFound {
+			return echo.ErrNotFound
+		}
+	}
+
+	return c.JSON(http.StatusOK, "a secret link has been sent to your email")
+
+}
 
 // GetProfile to profile of the user
 func (h *Handler) GetProfile(c echo.Context) (err error) {

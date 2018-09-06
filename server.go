@@ -52,6 +52,7 @@ func main() {
 	e.GET("/profile", h.GetProfile)
 	e.POST("/profile", h.UpdateProfile)
 	e.POST("/password", h.UpdatePassword)
+	e.GET("/password", h.RequestChangePassword)
 	e.GET("/test", h.TestFunc)
 
 	// Start server

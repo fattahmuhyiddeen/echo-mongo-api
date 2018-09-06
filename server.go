@@ -50,6 +50,7 @@ func main() {
 	// e.GET("/feed", h.FetchPost)
 	e.GET("/profile", h.GetProfile)
 	e.POST("/profile", h.UpdateProfile)
+	e.POST("/password", h.UpdatePassword)
 	e.GET("/test", h.TestFunc)
 
 	// Start server

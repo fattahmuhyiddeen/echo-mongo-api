@@ -25,7 +25,7 @@ func (h *Handler) Signup(c echo.Context) (err error) {
 	if !logic.IsValidEmail(u.Email) {
 		return &echo.HTTPError{Code: http.StatusBadRequest, Message: "invalid email"}
 	}
-	if u.Password == "" {
+	if !logic.IsValidPassword(u.Password) {
 		return &echo.HTTPError{Code: http.StatusBadRequest, Message: "invalid password"}
 	}
 
@@ -132,6 +132,8 @@ func (h *Handler) GetProfile(c echo.Context) (err error) {
 
 	defer db.Close()
 
+	user.Password = ""
+
 	return c.JSON(http.StatusOK, user)
 }
 
@@ -144,6 +146,38 @@ func (h *Handler) UpdateProfile(c echo.Context) (err error) {
 	defer db.Close()
 	if err = db.DB(config.DbName).C("users").
 		UpdateId(bson.ObjectIdHex(userID), bson.M{"$set": bson.M{"name": name}}); err != nil {
+		if err == mgo.ErrNotFound {
+			return echo.ErrNotFound
+		}
+	}
+
+	return
+}
+
+// UpdatePassword to update profile of the user
+func (h *Handler) UpdatePassword(c echo.Context) (err error) {
+	userID := userIDFromToken(c)
+	newPassword := c.FormValue("newPassword")
+	oldPassword := c.FormValue("oldPassword")
+
+	user := model.User{}
+	db := h.DB.Clone()
+
+	if err = db.DB(config.DbName).C("users").FindId(bson.ObjectIdHex(userID)).One(&user); err != nil {
+		return
+	}
+	defer db.Close()
+
+	if !logic.ComparePasswords(user.Password, oldPassword) {
+		return &echo.HTTPError{Code: http.StatusUnauthorized, Message: "wrong old password"}
+	}
+
+	if !logic.IsValidPassword(newPassword) {
+		return &echo.HTTPError{Code: http.StatusUnauthorized, Message: "invalid new password"}
+	}
+
+	if err = db.DB(config.DbName).C("users").
+		UpdateId(bson.ObjectIdHex(userID), bson.M{"$set": bson.M{"password": logic.HashPassword(newPassword)}}); err != nil {
 		if err == mgo.ErrNotFound {
 			return echo.ErrNotFound
 		}

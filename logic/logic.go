@@ -20,6 +20,14 @@ func IsValidEmail(email string) bool {
 	return re.MatchString(email)
 }
 
+// IsValidPassword email format
+func IsValidPassword(pwd string) bool {
+	if pwd == "" {
+		return false
+	}
+	return true
+}
+
 // HashPassword to hash password sent from api
 func HashPassword(pwd string) string {
 	hash, err := bcrypt.GenerateFromPassword([]byte(pwd), bcrypt.MinCost)
